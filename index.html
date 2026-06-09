@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Coffee Timer</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#c8833b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <style>
   :root {
     --bg: #1a1008;
@@ -34,6 +39,7 @@
   .screen { display: none; flex-direction: column; min-height: 100dvh; }
   .screen.active { display: flex; }
 
+  /* ── Header ── */
   .header {
     padding: 16px 20px 12px;
     display: flex;
@@ -62,7 +68,23 @@
     cursor: pointer;
     padding: 4px;
   }
+  .header .add-btn {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
 
+  /* ── Filter tabs ── */
   .tabs {
     display: flex;
     gap: 8px;
@@ -89,6 +111,7 @@
     font-weight: 600;
   }
 
+  /* ── Recipe list ── */
   .recipe-list {
     flex: 1;
     overflow-y: auto;
@@ -123,21 +146,45 @@
     background: var(--surface2);
     color: var(--accent);
     margin-bottom: 6px;
+    margin-right: 4px;
+  }
+  .custom-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--text2);
+    margin-bottom: 6px;
+    vertical-align: middle;
   }
   .recipe-name { font-size: 1rem; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .recipe-meta { font-size: 0.8rem; color: var(--text2); }
 
+  .card-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .edit-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--text2);
+    transition: color 0.15s;
+  }
+  .edit-btn:active { color: var(--accent); }
   .fav-btn {
     background: none;
     border: none;
     font-size: 1.4rem;
     cursor: pointer;
     padding: 4px;
-    flex-shrink: 0;
     transition: transform 0.15s;
   }
   .fav-btn:active { transform: scale(1.3); }
 
+  /* ── Recipe detail ── */
   #screen-recipe { overflow-y: auto; }
   .recipe-detail-body { padding: 0 20px 32px; flex: 1; }
 
@@ -219,6 +266,7 @@
   }
   .start-btn:active { background: var(--accent2); }
 
+  /* ── Brew screen ── */
   #screen-brew { background: var(--bg); justify-content: space-between; }
 
   .brew-header {
@@ -245,19 +293,13 @@
     width: var(--ring-size);
     height: var(--ring-size);
   }
-  .ring-wrap.pulsing {
-    animation: pulse-ring 0.5s ease-in-out infinite alternate;
-  }
+  .ring-wrap.pulsing { animation: pulse-ring 0.5s ease-in-out infinite alternate; }
   @keyframes pulse-ring {
     from { transform: scale(1); }
     to   { transform: scale(1.06); }
   }
 
-  #brew-svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
+  #brew-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   .ring-track { fill: none; stroke: var(--surface2); stroke-width: 10; }
   .ring-progress {
     fill: none;
@@ -283,12 +325,7 @@
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
-  #brew-step-label {
-    font-size: 0.8rem;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-  }
+  #brew-step-label { font-size: 0.8rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; }
 
   #brew-step-desc {
     text-align: center;
@@ -348,6 +385,7 @@
   #pause-btn .ctrl-icon { background: var(--accent); font-size: 1.4rem; }
   #pause-btn { color: var(--text); }
 
+  /* ── Complete overlay ── */
   .complete-overlay {
     display: none;
     position: fixed;
@@ -377,26 +415,140 @@
   #complete-fav-btn { background: var(--surface); color: var(--text); }
   #complete-home-btn { background: var(--accent); color: #fff; }
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text2);
-    display: none;
-  }
+  /* ── Empty state ── */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); display: none; }
   .empty-state.visible { display: block; }
   .empty-state p { margin-top: 8px; font-size: 0.9rem; }
+
+  /* ── Editor screen ── */
+  #screen-editor { overflow-y: auto; }
+  .editor-body { padding: 0 20px 32px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+  .field-group {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .field-group h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 2px; }
+
+  .field-row { display: flex; flex-direction: column; gap: 4px; }
+  .field-row.two-col { flex-direction: row; gap: 12px; }
+  .field-row.two-col .field-row { flex: 1; }
+  .field-row label { font-size: 0.75rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .field-row input, .field-row textarea, .field-row select {
+    background: var(--surface2);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .field-row input:focus, .field-row textarea:focus, .field-row select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .field-row textarea { resize: vertical; min-height: 64px; }
+  .field-row select option { background: var(--surface2); }
+
+  /* Steps editor */
+  .steps-editor { display: flex; flex-direction: column; gap: 10px; }
+  .step-editor-row {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .step-editor-top { display: flex; gap: 8px; align-items: center; }
+  .step-editor-top .step-num { font-size: 0.75rem; color: var(--text2); min-width: 20px; font-weight: 700; }
+  .step-editor-top input { flex: 1; }
+  .step-editor-top .time-input { width: 72px; flex: none; }
+  .remove-step-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .remove-step-btn:active { color: var(--warn); }
+  .step-editor-desc textarea { width: 100%; }
+  .step-editor-tokens { display: flex; flex-direction: column; gap: 6px; }
+  .token-row { display: flex; gap: 8px; align-items: center; }
+  .token-row input { flex: 1; }
+  .token-row .token-ratio { width: 80px; flex: none; }
+  .remove-token-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+  }
+  .add-token-btn {
+    background: none;
+    border: 1px dashed var(--text2);
+    border-radius: 6px;
+    color: var(--text2);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    text-align: left;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .add-token-btn:active { border-color: var(--accent); color: var(--accent); }
+  .token-hint { font-size: 0.72rem; color: var(--text2); line-height: 1.4; }
+
+  .add-step-btn {
+    background: none;
+    border: 1.5px dashed var(--text2);
+    border-radius: 10px;
+    color: var(--text2);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 10px;
+    text-align: center;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .add-step-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  .editor-actions { display: flex; gap: 12px; margin-top: 4px; }
+  .editor-actions button {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #editor-save-btn { background: var(--accent); color: #fff; }
+  #editor-delete-btn { background: var(--surface); color: var(--warn); }
 </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════
+     SCREEN 1 — Recipe List
+══════════════════════════════════════ -->
 <section id="screen-list" class="screen active">
   <div class="header">
-    <h1>&#9749; Coffee Timer</h1>
-    <button class="icon-btn" title="Info" onclick="alert('Coffee Timer v1.0\n\nA standalone recipe timer for specialty coffee.')">&#9432;</button>
+    <h1>☕ Coffee Timer</h1>
+    <button class="add-btn" title="New recipe" onclick="openEditor()">＋</button>
+    <button class="icon-btn" title="Info" onclick="alert('Coffee Timer v1.1\n\nA standalone recipe timer for specialty coffee.\n\nTap ＋ to add your own recipes.\nTap ✏ on any recipe to edit it.')">ⓘ</button>
   </div>
   <div class="tabs" id="filter-tabs">
     <button class="tab active" data-filter="all">All</button>
-    <button class="tab" data-filter="fav">&#9829; Favorites</button>
+    <button class="tab" data-filter="fav">♥ Favorites</button>
     <button class="tab" data-filter="V60">V60</button>
     <button class="tab" data-filter="AeroPress">AeroPress</button>
     <button class="tab" data-filter="French Press">French Press</button>
@@ -406,14 +558,17 @@
   </div>
   <div class="recipe-list" id="recipe-list"></div>
   <div class="empty-state" id="empty-state">
-    <div style="font-size:2rem">&#9829;</div>
+    <div style="font-size:2rem">♥</div>
     <p>No favorites yet.<br>Tap the heart on any recipe to save it here.</p>
   </div>
 </section>
 
+<!-- ══════════════════════════════════════
+     SCREEN 2 — Recipe Detail
+══════════════════════════════════════ -->
 <section id="screen-recipe" class="screen">
   <div class="header">
-    <button class="back-btn" onclick="showScreen('list')">&#8249;</button>
+    <button class="back-btn" onclick="showScreen('list')">‹</button>
     <h1 id="detail-method-label"></h1>
     <button class="fav-btn" id="detail-fav-btn" onclick="toggleFavDetail()"></button>
   </div>
@@ -422,53 +577,40 @@
       <h2 id="detail-name"></h2>
       <div class="author" id="detail-author"></div>
       <div class="recipe-specs">
-        <div class="spec">
-          <div class="spec-label">Coffee</div>
-          <div class="spec-value" id="spec-coffee"></div>
-        </div>
-        <div class="spec">
-          <div class="spec-label">Water</div>
-          <div class="spec-value" id="spec-water"></div>
-        </div>
-        <div class="spec">
-          <div class="spec-label">Grind Size</div>
-          <div class="spec-value" id="spec-grind"></div>
-        </div>
-        <div class="spec">
-          <div class="spec-label">Water Temp</div>
-          <div class="spec-value" id="spec-temp"></div>
-        </div>
+        <div class="spec"><div class="spec-label">Coffee</div><div class="spec-value" id="spec-coffee"></div></div>
+        <div class="spec"><div class="spec-label">Water</div><div class="spec-value" id="spec-water"></div></div>
+        <div class="spec"><div class="spec-label">Grind Size</div><div class="spec-value" id="spec-grind"></div></div>
+        <div class="spec"><div class="spec-label">Water Temp</div><div class="spec-value" id="spec-temp"></div></div>
       </div>
     </div>
-
     <div class="gram-picker">
       <label for="gram-input">
         Coffee Amount
         <span id="gram-water-hint"></span>
       </label>
       <div class="gram-ctrl">
-        <button class="gram-btn" onclick="adjustGrams(-1)">&#8722;</button>
+        <button class="gram-btn" onclick="adjustGrams(-1)">−</button>
         <input type="number" id="gram-input" min="1" max="100" value="15" oninput="onGramChange()">
         <button class="gram-btn" onclick="adjustGrams(1)">+</button>
       </div>
     </div>
-
     <div class="steps-preview">
       <h3>Recipe Steps</h3>
       <div id="steps-preview-list"></div>
     </div>
-
-    <button class="start-btn" onclick="startBrew()">Start Brewing &#8594;</button>
+    <button class="start-btn" onclick="startBrew()">Start Brewing →</button>
   </div>
 </section>
 
+<!-- ══════════════════════════════════════
+     SCREEN 3 — Brew Player
+══════════════════════════════════════ -->
 <section id="screen-brew" class="screen">
   <div class="brew-header">
-    <button class="back-btn" onclick="confirmStopBrew()">&#8249;</button>
+    <button class="back-btn" onclick="confirmStopBrew()">‹</button>
     <div class="step-indicator" id="step-indicator"></div>
     <div style="width:28px"></div>
   </div>
-
   <div class="brew-center">
     <div class="ring-wrap" id="ring-wrap">
       <svg id="brew-svg" viewBox="0 0 240 240">
@@ -481,30 +623,103 @@
         <div id="brew-step-label"></div>
       </div>
     </div>
-
     <div id="brew-step-desc"></div>
-
-    <button id="continue-btn" onclick="advanceStep()">Continue &#8594;</button>
+    <button id="continue-btn" onclick="advanceStep()">Continue →</button>
   </div>
-
   <div class="brew-controls">
     <button class="ctrl-btn" onclick="prevStep()">
-      <div class="ctrl-icon">&#9198;</div>
+      <div class="ctrl-icon">⏮</div>
       Back
     </button>
     <button class="ctrl-btn" id="pause-btn" onclick="togglePause()">
-      <div class="ctrl-icon" id="pause-icon">&#9208;</div>
+      <div class="ctrl-icon" id="pause-icon">⏸</div>
       <span id="pause-label">Pause</span>
     </button>
     <button class="ctrl-btn" onclick="advanceStep()">
-      <div class="ctrl-icon">&#9197;</div>
+      <div class="ctrl-icon">⏭</div>
       Skip
     </button>
   </div>
 </section>
 
+<!-- ══════════════════════════════════════
+     SCREEN 4 — Recipe Editor
+══════════════════════════════════════ -->
+<section id="screen-editor" class="screen">
+  <div class="header">
+    <button class="back-btn" onclick="showScreen('list')">‹</button>
+    <h1 id="editor-title">New Recipe</h1>
+  </div>
+  <div class="editor-body">
+
+    <div class="field-group">
+      <h3>Recipe Info</h3>
+      <div class="field-row">
+        <label>Name</label>
+        <input type="text" id="ed-name" placeholder="e.g. My V60 Recipe">
+      </div>
+      <div class="field-row">
+        <label>Author</label>
+        <input type="text" id="ed-author" placeholder="Your name">
+      </div>
+      <div class="field-row">
+        <label>Method</label>
+        <input type="text" id="ed-method" list="method-suggestions" placeholder="e.g. V60">
+        <datalist id="method-suggestions">
+          <option value="V60">
+          <option value="AeroPress">
+          <option value="French Press">
+          <option value="Chemex">
+          <option value="Espresso">
+          <option value="Moka Pot">
+        </datalist>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3>Defaults</h3>
+      <div class="field-row two-col">
+        <div class="field-row">
+          <label>Coffee (g)</label>
+          <input type="number" id="ed-coffee" min="1" max="100" placeholder="15">
+        </div>
+        <div class="field-row">
+          <label>Water (ml)</label>
+          <input type="number" id="ed-water" min="1" placeholder="250">
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Grind Size</label>
+        <input type="text" id="ed-grind" placeholder="e.g. Medium-fine">
+      </div>
+      <div class="field-row">
+        <label>Water Temp</label>
+        <input type="text" id="ed-temp" placeholder="e.g. 93°C / 200°F">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3>Steps</h3>
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:4px">
+        Leave <strong>time blank</strong> for prep steps (no timer, shows Continue button).<br>
+        Use <strong>{coffee}</strong>, <strong>{water}</strong>, <strong>{temp}</strong> in descriptions for scaled values.<br>
+        Add <strong>custom tokens</strong> (e.g. <em>bloom = 20% of water</em>) per step.
+      </p>
+      <div class="steps-editor" id="steps-editor"></div>
+      <button class="add-step-btn" onclick="addEditorStep()">＋ Add Step</button>
+    </div>
+
+    <div class="editor-actions">
+      <button id="editor-delete-btn" onclick="deleteEditorRecipe()" style="display:none"></button>
+      <button id="editor-save-btn" onclick="saveEditor()">Save Recipe</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- Complete overlay -->
 <div class="complete-overlay" id="complete-overlay">
-  <div class="complete-icon">&#9749;</div>
+  <div class="complete-icon">☕</div>
   <h2>Brew Complete!</h2>
   <p id="complete-msg"></p>
   <div class="complete-actions">
@@ -514,6 +729,9 @@
 </div>
 
 <script>
+// ══════════════════════════════════════
+// BUILT-IN RECIPE DATA
+// ══════════════════════════════════════
 const RECIPES = [
   {
     id: 'v60-hoffmann',
@@ -662,62 +880,112 @@ const RECIPES = [
   },
 ];
 
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
 const CIRC = 2 * Math.PI * 108;
 
-let favorites = JSON.parse(localStorage.getItem('cf_favorites') || '[]');
-let lastGrams  = JSON.parse(localStorage.getItem('cf_last_grams')  || '{}');
+let favorites     = JSON.parse(localStorage.getItem('cf_favorites')       || '[]');
+let lastGrams     = JSON.parse(localStorage.getItem('cf_last_grams')      || '{}');
+let customRecipes = JSON.parse(localStorage.getItem('cf_custom_recipes')  || '[]');
+let ALL_RECIPES   = [];
+
 let currentFilter = 'all';
-let activeRecipe = null;
+let activeRecipe  = null;
 let activeScaledSteps = [];
 let activeStepIndex = 0;
 let scaleFactor = 1;
+
+// editor state
+let editorId = null; // null = new recipe, string = editing existing
+
+// timer
 let timerRAF = null;
 let timerStart = null;
 let timerElapsed = 0;
 let timerDuration = 0;
 let timerPaused = false;
 
-function saveFavorites() { localStorage.setItem('cf_favorites', JSON.stringify(favorites)); }
-function saveLastGrams()  { localStorage.setItem('cf_last_grams',  JSON.stringify(lastGrams)); }
-function isFav(id)        { return favorites.includes(id); }
+// ══════════════════════════════════════
+// RECIPE MERGE
+// ══════════════════════════════════════
+function rebuildAllRecipes() {
+  ALL_RECIPES = [
+    ...RECIPES.filter(r => !customRecipes.find(c => c.id === r.id)),
+    ...customRecipes,
+  ];
+}
+
+function isCustom(id) {
+  return !!customRecipes.find(r => r.id === id);
+}
+
+function isOverride(id) {
+  // custom recipe that has the same id as a built-in
+  return isCustom(id) && !!RECIPES.find(r => r.id === id);
+}
+
+// ══════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════
+function saveFavorites()     { localStorage.setItem('cf_favorites',      JSON.stringify(favorites)); }
+function saveLastGrams()     { localStorage.setItem('cf_last_grams',     JSON.stringify(lastGrams)); }
+function saveCustomRecipes() { localStorage.setItem('cf_custom_recipes', JSON.stringify(customRecipes)); }
+function isFav(id)           { return favorites.includes(id); }
+
 function setFav(id, state) {
   favorites = favorites.filter(f => f !== id);
   if (state) favorites.push(id);
   saveFavorites();
 }
 
+// ══════════════════════════════════════
+// SCREEN ROUTING
+// ══════════════════════════════════════
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
 }
 
+// ══════════════════════════════════════
+// SCREEN 1 — RECIPE LIST
+// ══════════════════════════════════════
 function buildList() {
-  const list = document.getElementById('recipe-list');
+  const list  = document.getElementById('recipe-list');
   const empty = document.getElementById('empty-state');
   list.innerHTML = '';
-  const filtered = RECIPES.filter(r => {
+
+  const filtered = ALL_RECIPES.filter(r => {
     if (currentFilter === 'fav') return isFav(r.id);
     if (currentFilter === 'all') return true;
     return r.method === currentFilter;
   });
+
   if (filtered.length === 0) {
     empty.classList.add('visible');
   } else {
     empty.classList.remove('visible');
     filtered.forEach(r => {
+      const custom = isCustom(r.id);
       const card = document.createElement('div');
       card.className = 'recipe-card';
       card.dataset.id = r.id;
       card.innerHTML = `
         <div class="recipe-card-main">
-          <div class="method-badge">${r.method}</div>
+          <div>
+            <span class="method-badge">${r.method}</span>${custom ? '<span class="custom-badge">custom</span>' : ''}
+          </div>
           <div class="recipe-name">${r.name}</div>
-          <div class="recipe-meta">by ${r.author} &middot; ${formatTime(getBrewTime(r))}</div>
+          <div class="recipe-meta">by ${r.author} · ${formatTime(getBrewTime(r))}</div>
         </div>
-        <button class="fav-btn" data-id="${r.id}" onclick="toggleFavList(event,'${r.id}')">${isFav(r.id) ? '&#9829;' : '&#9825;'}</button>
+        <div class="card-actions">
+          <button class="edit-btn" title="Edit recipe" onclick="openEditor('${r.id}');event.stopPropagation()">✏</button>
+          <button class="fav-btn" onclick="toggleFavList(event,'${r.id}')">${isFav(r.id) ? '♥' : '♡'}</button>
+        </div>
       `;
       card.addEventListener('click', e => {
-        if (!e.target.classList.contains('fav-btn')) openRecipe(r.id);
+        if (!e.target.classList.contains('fav-btn') && !e.target.classList.contains('edit-btn'))
+          openRecipe(r.id);
       });
       list.appendChild(card);
     });
@@ -743,8 +1011,11 @@ document.getElementById('filter-tabs').addEventListener('click', e => {
   buildList();
 });
 
+// ══════════════════════════════════════
+// SCREEN 2 — RECIPE DETAIL
+// ══════════════════════════════════════
 function openRecipe(id) {
-  activeRecipe = RECIPES.find(r => r.id === id);
+  activeRecipe = ALL_RECIPES.find(r => r.id === id);
   const grams = lastGrams[id] || activeRecipe.defaultCoffee;
   document.getElementById('gram-input').value = grams;
   renderDetail();
@@ -757,22 +1028,25 @@ function renderDetail() {
   scaleFactor = grams / r.defaultCoffee;
   const scaledWater = Math.round(r.defaultWater * scaleFactor);
   const scaledTime  = Math.round(getBrewTime(r) * scaleFactor);
+
   document.getElementById('detail-method-label').textContent = r.method;
-  document.getElementById('detail-name').textContent = r.name;
-  document.getElementById('detail-author').textContent = 'by ' + r.author;
-  document.getElementById('detail-fav-btn').textContent = isFav(r.id) ? '♥' : '♡';
-  document.getElementById('spec-coffee').textContent = grams + 'g';
-  document.getElementById('spec-water').textContent  = scaledWater + 'ml';
-  document.getElementById('spec-grind').textContent  = r.grindSize;
-  document.getElementById('spec-temp').textContent   = r.waterTemp;
-  document.getElementById('gram-water-hint').textContent = '→ ' + scaledWater + 'ml water · ' + formatTime(scaledTime) + ' brew';
+  document.getElementById('detail-name').textContent         = r.name;
+  document.getElementById('detail-author').textContent       = 'by ' + r.author;
+  document.getElementById('detail-fav-btn').textContent      = isFav(r.id) ? '♥' : '♡';
+  document.getElementById('spec-coffee').textContent         = grams + 'g';
+  document.getElementById('spec-water').textContent          = scaledWater + 'ml';
+  document.getElementById('spec-grind').textContent          = r.grindSize;
+  document.getElementById('spec-temp').textContent           = r.waterTemp;
+  document.getElementById('gram-water-hint').textContent     = `→ ${scaledWater}ml water · ${formatTime(scaledTime)} brew`;
+
   activeScaledSteps = buildScaledSteps(r, grams);
+
   const preview = document.getElementById('steps-preview-list');
   preview.innerHTML = '';
   activeScaledSteps.forEach(s => {
     const row = document.createElement('div');
     row.className = 'step-row';
-    row.innerHTML = '<div class="step-time">' + (s.time === null ? '–' : formatTime(s.time)) + '</div><div class="step-desc">' + s.description + '</div>';
+    row.innerHTML = `<div class="step-time">${s.time === null ? '–' : formatTime(s.time)}</div><div class="step-desc">${s.description}</div>`;
     preview.appendChild(row);
   });
 }
@@ -780,6 +1054,7 @@ function renderDetail() {
 function buildScaledSteps(recipe, grams) {
   const sf = grams / recipe.defaultCoffee;
   const scaledWater = Math.round(recipe.defaultWater * sf);
+
   return recipe.steps.map(s => {
     let desc = s.description;
     desc = desc.replace(/\{coffee\}/g, grams);
@@ -787,7 +1062,9 @@ function buildScaledSteps(recipe, grams) {
     desc = desc.replace(/\{temp\}/g, recipe.waterTemp);
     if (s.tokens) {
       for (const [key, fn] of Object.entries(s.tokens)) {
-        desc = desc.replace(new RegExp('\\{' + key + '\\}', 'g'), fn(scaledWater));
+        // built-ins use functions; user recipes store ratio numbers
+        const val = typeof fn === 'function' ? fn(scaledWater) : Math.round(fn * scaledWater);
+        desc = desc.replace(new RegExp(`\\{${key}\\}`, 'g'), val);
       }
     }
     return {
@@ -817,6 +1094,9 @@ function toggleFavDetail() {
   document.getElementById('detail-fav-btn').textContent = isFav(activeRecipe.id) ? '♥' : '♡';
 }
 
+// ══════════════════════════════════════
+// SCREEN 3 — BREW PLAYER
+// ══════════════════════════════════════
 function startBrew() {
   activeStepIndex = 0;
   showScreen('brew');
@@ -826,15 +1106,19 @@ function startBrew() {
 function renderBrewStep() {
   stopTimer();
   document.getElementById('complete-overlay').classList.remove('visible');
-  const step = activeScaledSteps[activeStepIndex];
+
+  const step  = activeScaledSteps[activeStepIndex];
   const total = activeScaledSteps.length;
-  document.getElementById('step-indicator').innerHTML = 'Step <strong>' + (activeStepIndex + 1) + '</strong> of ' + total;
+
+  document.getElementById('step-indicator').innerHTML = `Step <strong>${activeStepIndex + 1}</strong> of ${total}`;
   document.getElementById('brew-step-label').textContent = step.label;
   document.getElementById('brew-step-desc').textContent  = step.description;
-  const isPrep = step.time === null;
+
+  const isPrep      = step.time === null;
   const continueBtn = document.getElementById('continue-btn');
   const ringWrap    = document.getElementById('ring-wrap');
   const pauseBtn    = document.getElementById('pause-btn');
+
   if (isPrep) {
     continueBtn.classList.add('visible');
     ringWrap.classList.add('prep-ring');
@@ -847,6 +1131,7 @@ function renderBrewStep() {
     ringWrap.classList.remove('prep-ring');
     pauseBtn.style.opacity = '';
     pauseBtn.style.pointerEvents = '';
+
     const nextStep = activeScaledSteps[activeStepIndex + 1];
     if (nextStep && nextStep.time !== null && step.time !== null) {
       timerDuration = nextStep.time - step.time;
@@ -858,6 +1143,7 @@ function renderBrewStep() {
     } else {
       timerDuration = 60;
     }
+
     timerElapsed = 0;
     timerPaused  = false;
     updatePauseBtn();
@@ -934,9 +1220,12 @@ function confirmStopBrew() {
   if (confirm('Stop brewing and go back to the recipe?')) { stopTimer(); showScreen('recipe'); }
 }
 
+// ══════════════════════════════════════
+// COMPLETE SCREEN
+// ══════════════════════════════════════
 function showComplete() {
   stopTimer();
-  document.getElementById('complete-msg').textContent = 'You brewed ' + activeRecipe.name + ' — hope it\'s delicious!';
+  document.getElementById('complete-msg').textContent = `You brewed ${activeRecipe.name} — hope it's delicious!`;
   updateCompleteFavBtn();
   document.getElementById('complete-overlay').classList.add('visible');
 }
@@ -954,14 +1243,214 @@ function goHome() {
   showScreen('list');
 }
 
+// ══════════════════════════════════════
+// SCREEN 4 — RECIPE EDITOR
+// ══════════════════════════════════════
+function openEditor(id) {
+  editorId = id || null;
+  document.getElementById('editor-title').textContent = id ? 'Edit Recipe' : 'New Recipe';
+
+  const deleteBtn = document.getElementById('editor-delete-btn');
+  if (id) {
+    const isBuiltIn = !!RECIPES.find(r => r.id === id);
+    deleteBtn.style.display = 'block';
+    deleteBtn.textContent   = isBuiltIn ? 'Reset to Default' : 'Delete Recipe';
+  } else {
+    deleteBtn.style.display = 'none';
+  }
+
+  if (id) {
+    const r = ALL_RECIPES.find(r => r.id === id);
+    document.getElementById('ed-name').value   = r.name;
+    document.getElementById('ed-author').value = r.author;
+    document.getElementById('ed-method').value = r.method;
+    document.getElementById('ed-coffee').value = r.defaultCoffee;
+    document.getElementById('ed-water').value  = r.defaultWater;
+    document.getElementById('ed-grind').value  = r.grindSize;
+    document.getElementById('ed-temp').value   = r.waterTemp;
+    renderEditorSteps(r.steps);
+  } else {
+    document.getElementById('ed-name').value   = '';
+    document.getElementById('ed-author').value = '';
+    document.getElementById('ed-method').value = '';
+    document.getElementById('ed-coffee').value = '';
+    document.getElementById('ed-water').value  = '';
+    document.getElementById('ed-grind').value  = '';
+    document.getElementById('ed-temp').value   = '';
+    renderEditorSteps([
+      { time: null, label: 'Preparation', description: '' },
+      { time: 0,    label: '',            description: '' },
+      { time: null, label: 'Done',        description: 'Enjoy! ☕', last: true },
+    ]);
+  }
+
+  showScreen('editor');
+}
+
+function renderEditorSteps(steps) {
+  const container = document.getElementById('steps-editor');
+  container.innerHTML = '';
+  steps.forEach((s, i) => addEditorStep(s, i));
+}
+
+function addEditorStep(prefill, insertIdx) {
+  const container = document.getElementById('steps-editor');
+  const idx = insertIdx !== undefined ? insertIdx : container.children.length;
+  const s = prefill || { time: null, label: '', description: '', tokens: {} };
+
+  const row = document.createElement('div');
+  row.className = 'step-editor-row';
+
+  // build tokens html
+  const tokensHtml = buildTokensHtml(s.tokens || {});
+
+  row.innerHTML = `
+    <div class="step-editor-top">
+      <span class="step-num">${idx + 1}</span>
+      <input type="text" class="step-label" placeholder="Step label" value="${escHtml(s.label || '')}">
+      <input type="number" class="time-input step-time-input" placeholder="secs (blank=prep)" min="0"
+        value="${s.time !== null && s.time !== undefined ? s.time : ''}">
+      <button class="remove-step-btn" onclick="removeEditorStep(this)" title="Remove step">✕</button>
+    </div>
+    <div class="step-editor-desc">
+      <textarea class="step-desc-input" placeholder="Description — use {coffee}, {water}, {temp}, or custom tokens">${escHtml(s.description || '')}</textarea>
+    </div>
+    <div class="step-editor-tokens">
+      <div class="token-hint">Custom tokens (ratio of scaled water): e.g. <em>bloom = 0.2</em> → use <strong>{bloom}</strong> in description</div>
+      <div class="token-list">${tokensHtml}</div>
+      <button class="add-token-btn" onclick="addTokenRow(this)">＋ Add token</button>
+    </div>
+  `;
+
+  if (insertIdx !== undefined && container.children[insertIdx]) {
+    container.insertBefore(row, container.children[insertIdx]);
+  } else {
+    container.appendChild(row);
+  }
+  renumberEditorSteps();
+}
+
+function buildTokensHtml(tokens) {
+  return Object.entries(tokens).map(([key, val]) => {
+    // val may be a function (built-in) or number (user). Show ratio if number.
+    const ratio = typeof val === 'function' ? '' : val;
+    return `<div class="token-row">
+      <input type="text" class="token-key" placeholder="name" value="${escHtml(key)}">
+      <input type="number" class="token-ratio" placeholder="ratio" step="0.01" min="0" max="1" value="${ratio}">
+      <button class="remove-token-btn" onclick="this.closest('.token-row').remove()" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function addTokenRow(btn) {
+  const tokenList = btn.previousElementSibling;
+  const row = document.createElement('div');
+  row.className = 'token-row';
+  row.innerHTML = `
+    <input type="text" class="token-key" placeholder="name">
+    <input type="number" class="token-ratio" placeholder="ratio" step="0.01" min="0" max="1">
+    <button class="remove-token-btn" onclick="this.closest('.token-row').remove()" title="Remove">✕</button>
+  `;
+  tokenList.appendChild(row);
+}
+
+function removeEditorStep(btn) {
+  const container = document.getElementById('steps-editor');
+  if (container.children.length <= 2) { alert('A recipe needs at least 2 steps.'); return; }
+  btn.closest('.step-editor-row').remove();
+  renumberEditorSteps();
+}
+
+function renumberEditorSteps() {
+  document.querySelectorAll('#steps-editor .step-num').forEach((el, i) => {
+    el.textContent = i + 1;
+  });
+}
+
+function saveEditor() {
+  const name   = document.getElementById('ed-name').value.trim();
+  const author = document.getElementById('ed-author').value.trim();
+  const method = document.getElementById('ed-method').value.trim();
+  const coffee = parseInt(document.getElementById('ed-coffee').value);
+  const water  = parseInt(document.getElementById('ed-water').value);
+  const grind  = document.getElementById('ed-grind').value.trim();
+  const temp   = document.getElementById('ed-temp').value.trim();
+
+  if (!name)   { alert('Please enter a recipe name.'); return; }
+  if (!method) { alert('Please enter a brew method.'); return; }
+  if (!coffee || !water) { alert('Please enter default coffee and water amounts.'); return; }
+
+  const stepRows = document.querySelectorAll('#steps-editor .step-editor-row');
+  if (stepRows.length < 2) { alert('Please add at least 2 steps.'); return; }
+
+  const steps = Array.from(stepRows).map((row, i) => {
+    const label   = row.querySelector('.step-label').value.trim();
+    const timeVal = row.querySelector('.step-time-input').value.trim();
+    const desc    = row.querySelector('.step-desc-input').value.trim();
+    const time    = timeVal === '' ? null : parseInt(timeVal);
+
+    const tokens = {};
+    row.querySelectorAll('.token-row').forEach(tr => {
+      const key   = tr.querySelector('.token-key').value.trim();
+      const ratio = parseFloat(tr.querySelector('.token-ratio').value);
+      if (key && !isNaN(ratio)) tokens[key] = ratio;
+    });
+
+    const step = { time, label, description: desc };
+    if (Object.keys(tokens).length) step.tokens = tokens;
+    if (i === stepRows.length - 1) step.last = true;
+    return step;
+  });
+
+  const recipe = { id: editorId || ('custom-' + Date.now()), method, name, author, defaultCoffee: coffee, defaultWater: water, grindSize: grind, waterTemp: temp, steps };
+
+  customRecipes = customRecipes.filter(r => r.id !== recipe.id);
+  customRecipes.push(recipe);
+  saveCustomRecipes();
+  rebuildAllRecipes();
+  buildList();
+  showScreen('list');
+}
+
+function deleteEditorRecipe() {
+  if (!editorId) return;
+  const isBuiltIn = !!RECIPES.find(r => r.id === editorId);
+  const msg = isBuiltIn
+    ? 'Reset this recipe to its original built-in version?'
+    : 'Delete this custom recipe? This cannot be undone.';
+  if (!confirm(msg)) return;
+  customRecipes = customRecipes.filter(r => r.id !== editorId);
+  saveCustomRecipes();
+  rebuildAllRecipes();
+  buildList();
+  showScreen('list');
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
 function formatTime(seconds) {
   if (seconds === null || isNaN(seconds)) return '–';
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
-  return m + ':' + s.toString().padStart(2, '0');
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+rebuildAllRecipes();
 buildList();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+  }
 </script>
 </body>
 </html>
