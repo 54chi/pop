@@ -897,7 +897,7 @@ let activeStepIndex = 0;
 let scaleFactor = 1;
 
 // editor state
-let editorId = null; // null = new recipe, string = editing existing
+let editorId = null;
 
 // timer
 let timerRAF = null;
@@ -921,7 +921,6 @@ function isCustom(id) {
 }
 
 function isOverride(id) {
-  // custom recipe that has the same id as a built-in
   return isCustom(id) && !!RECIPES.find(r => r.id === id);
 }
 
@@ -1027,7 +1026,7 @@ function renderDetail() {
   const grams = parseInt(document.getElementById('gram-input').value) || r.defaultCoffee;
   scaleFactor = grams / r.defaultCoffee;
   const scaledWater = Math.round(r.defaultWater * scaleFactor);
-  const scaledTime  = Math.round(getBrewTime(r) * scaleFactor);
+  const scaledTime  = getBrewTime(r);
 
   document.getElementById('detail-method-label').textContent = r.method;
   document.getElementById('detail-name').textContent         = r.name;
@@ -1068,7 +1067,7 @@ function buildScaledSteps(recipe, grams) {
       }
     }
     return {
-      time: s.time !== null ? Math.round(s.time * sf) : null,
+      time: s.time,
       label: s.label,
       description: desc,
       last: !!s.last,
@@ -1301,7 +1300,6 @@ function addEditorStep(prefill, insertIdx) {
   const row = document.createElement('div');
   row.className = 'step-editor-row';
 
-  // build tokens html
   const tokensHtml = buildTokensHtml(s.tokens || {});
 
   row.innerHTML = `
@@ -1332,7 +1330,6 @@ function addEditorStep(prefill, insertIdx) {
 
 function buildTokensHtml(tokens) {
   return Object.entries(tokens).map(([key, val]) => {
-    // val may be a function (built-in) or number (user). Show ratio if number.
     const ratio = typeof val === 'function' ? '' : val;
     return `<div class="token-row">
       <input type="text" class="token-key" placeholder="name" value="${escHtml(key)}">
